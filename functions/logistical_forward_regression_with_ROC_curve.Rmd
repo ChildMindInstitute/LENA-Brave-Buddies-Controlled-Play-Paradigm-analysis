@@ -1,6 +1,6 @@
 ---
 title: "logistical regressions with ROC curve"
-output: html_notebook
+output: md_document
 ---
 
 get & prep data
