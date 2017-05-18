@@ -2,6 +2,7 @@ get & prep data
 
     data <- read.csv('../data/CPP_data_all.csv', header=TRUE)
     smq <- read.csv('../data/SMQ.csv', header=TRUE)
+    smq$smq_id <- (18 - smq$smq_id) / 6
     library(plyr)
     data <- ddply(data, .(URSI, SM_dx), summarize,
                   Turn_Count=sum(Turn_Count),
@@ -324,44 +325,30 @@ forward regression for SMQ
     ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
     ##  extra argument 'family' will be disregarded
 
-    ## Start:  AIC=67.69
+    ## Start:  AIC=42.99
     ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
     ## 
     ##                         Df Sum of Sq    RSS    AIC
-    ## + Turn_Count             1    68.585 329.27 65.528
-    ## + Peak_SignalLevel       1    60.875 336.98 66.037
-    ## + Average_SignalLevel    1    48.992 348.86 66.800
-    ## + Child_NonVoc_Duration  1    39.474 358.38 67.392
-    ## <none>                               397.85 67.691
-    ## + Child_Voc_Duration     1     0.653 397.20 69.655
+    ## + Child_Voc_Duration     1   18.6022 110.83 41.573
+    ## <none>                               129.43 42.986
+    ## + Average_SignalLevel    1    9.1278 120.30 43.378
+    ## + Peak_SignalLevel       1    4.3794 125.05 44.229
+    ## + Turn_Count             1    1.1685 128.26 44.787
+    ## + Child_NonVoc_Duration  1    0.0000 129.43 44.986
 
     ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
     ##  extra argument 'family' will be disregarded
 
     ## 
-    ## Step:  AIC=65.53
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Turn_Count
+    ## Step:  AIC=41.57
+    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration
     ## 
     ##                         Df Sum of Sq    RSS    AIC
-    ## + Average_SignalLevel    1    34.180 295.09 65.117
-    ## <none>                               329.27 65.528
-    ## + Peak_SignalLevel       1    23.343 305.92 65.910
-    ## + Child_NonVoc_Duration  1    23.228 306.04 65.919
-    ## + Child_Voc_Duration     1    18.042 311.22 66.288
-
-    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
-    ##  extra argument 'family' will be disregarded
-
-    ## 
-    ## Step:  AIC=65.12
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Turn_Count + 
-    ##     Average_SignalLevel
-    ## 
-    ##                         Df Sum of Sq    RSS    AIC
-    ## <none>                               295.09 65.117
-    ## + Child_NonVoc_Duration  1    17.340 277.75 65.785
-    ## + Child_Voc_Duration     1    14.836 280.25 65.982
-    ## + Peak_SignalLevel       1    12.410 282.68 66.172
+    ## <none>                               110.83 41.573
+    ## + Average_SignalLevel    1    8.9200 101.91 41.727
+    ## + Child_NonVoc_Duration  1    2.6187 108.21 43.047
+    ## + Peak_SignalLevel       1    1.2385 109.59 43.326
+    ## + Turn_Count             1    0.3488 110.48 43.504
 
     fwd.overfit.smq.model$anova
 
@@ -372,14 +359,12 @@ forward regression for SMQ
     ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
     ## 
     ## Final Model:
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Turn_Count + 
-    ##     Average_SignalLevel
+    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration
     ## 
     ## 
-    ##                    Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                          20   397.8518 67.69081
-    ## 2          + Turn_Count  1 68.58512        19   329.2666 65.52816
-    ## 3 + Average_SignalLevel  1 34.17970        18   295.0869 65.11701
+    ##                   Step Df Deviance Resid. Df Resid. Dev      AIC
+    ## 1                                         20   129.4320 42.98649
+    ## 2 + Child_Voc_Duration  1 18.60218        19   110.8298 41.57297
 
 ROC, AUC
 
@@ -394,7 +379,7 @@ ROC, AUC
     fwd.overfit.smq.auc <- fwd.overfit.smq.auc@y.values[[1]]
     fwd.overfit.smq.auc
 
-    ## [1] 0.6597222
+    ## [1] 0.08333333
 
 forward linear regression without overfitting
 
@@ -403,30 +388,44 @@ forward linear regression without overfitting
     ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
     ##  extra argument 'family' will be disregarded
 
-    ## Start:  AIC=43.57
+    ## Start:  AIC=35.94
     ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
     ## 
-    ##                         Df Sum of Sq    RSS    AIC
-    ## + Average_SignalLevel    1    57.837 116.46 38.714
-    ## + Peak_SignalLevel       1    26.100 148.20 42.811
-    ## <none>                               174.30 43.569
-    ## + Child_Voc_Duration     1     5.283 169.02 45.045
-    ## + Child_NonVoc_Duration  1     4.093 170.21 45.165
-    ## + Turn_Count             1     1.249 173.05 45.446
+    ##                         Df Sum of Sq     RSS    AIC
+    ## + Child_Voc_Duration     1   18.6948  92.587 34.814
+    ## + Average_SignalLevel    1   18.1246  93.157 34.918
+    ## <none>                               111.282 35.940
+    ## + Turn_Count             1    5.2883 105.994 37.113
+    ## + Peak_SignalLevel       1    3.7494 107.532 37.358
+    ## + Child_NonVoc_Duration  1    1.2461 110.036 37.749
 
     ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
     ##  extra argument 'family' will be disregarded
 
     ## 
-    ## Step:  AIC=38.71
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Average_SignalLevel
+    ## Step:  AIC=34.81
+    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration
     ## 
     ##                         Df Sum of Sq    RSS    AIC
-    ## <none>                               116.46 38.714
-    ## + Child_NonVoc_Duration  1   12.8296 103.63 38.730
-    ## + Peak_SignalLevel       1   11.0193 105.44 39.024
-    ## + Child_Voc_Duration     1    9.2981 107.17 39.300
-    ## + Turn_Count             1    0.7525 115.71 40.604
+    ## + Average_SignalLevel    1   22.0717 70.515 32.184
+    ## <none>                               92.587 34.814
+    ## + Peak_SignalLevel       1    0.4582 92.129 36.730
+    ## + Turn_Count             1    0.3639 92.223 36.747
+    ## + Child_NonVoc_Duration  1    0.1917 92.395 36.779
+
+    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
+    ##  extra argument 'family' will be disregarded
+
+    ## 
+    ## Step:  AIC=32.18
+    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration + 
+    ##     Average_SignalLevel
+    ## 
+    ##                         Df Sum of Sq    RSS    AIC
+    ## <none>                               70.515 32.184
+    ## + Turn_Count             1    3.1694 67.346 33.403
+    ## + Peak_SignalLevel       1    0.5321 69.983 34.056
+    ## + Child_NonVoc_Duration  1    0.1471 70.368 34.149
 
     fwd.smq.model$anova
 
@@ -437,17 +436,19 @@ forward linear regression without overfitting
     ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
     ## 
     ## Final Model:
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Average_SignalLevel
+    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration + 
+    ##     Average_SignalLevel
     ## 
     ## 
     ##                    Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                          15   174.2996 43.56856
-    ## 2 + Average_SignalLevel  1 57.83698        14   116.4626 38.71406
+    ## 1                                          15  111.28185 35.94050
+    ## 2  + Child_Voc_Duration  1 18.69484        14   92.58701 34.81390
+    ## 3 + Average_SignalLevel  1 22.07171        13   70.51530 32.18448
 
 ROC, AUC
 
-    fwd.smq.p <- predict(fwd.smq.model, newdata=test, type="response")
-    fwd.smq.pr <- prediction(fwd.smq.p, test$SM_dx)
+    fwd.smq.p <- predict(fwd.smq.model, newdata=train, type="response")
+    fwd.smq.pr <- prediction(fwd.smq.p, train$SM_dx)
     fwd.smq.prf <- performance(fwd.smq.pr, measure="tpr", x.measure="fpr")
     plot(fwd.smq.prf)
 
@@ -457,4 +458,4 @@ ROC, AUC
     fwd.smq.auc <- fwd.smq.auc@y.values[[1]]
     fwd.smq.auc
 
-    ## [1] 0.6666667
+    ## [1] 0.03333333

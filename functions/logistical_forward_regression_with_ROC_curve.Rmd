@@ -7,6 +7,7 @@ get & prep data
 ```{r get & prep data}
 data <- read.csv('../data/CPP_data_all.csv', header=TRUE)
 smq <- read.csv('../data/SMQ.csv', header=TRUE)
+smq$smq_id <- (18 - smq$smq_id) / 6
 library(plyr)
 data <- ddply(data, .(URSI, SM_dx), summarize,
               Turn_Count=sum(Turn_Count),
@@ -135,8 +136,8 @@ fwd.smq.model$anova
 
 ROC, AUC
 ```{r ROC, AUC for forward linear regression without overfitting}
-fwd.smq.p <- predict(fwd.smq.model, newdata=test, type="response")
-fwd.smq.pr <- prediction(fwd.smq.p, test$SM_dx)
+fwd.smq.p <- predict(fwd.smq.model, newdata=train, type="response")
+fwd.smq.pr <- prediction(fwd.smq.p, train$SM_dx)
 fwd.smq.prf <- performance(fwd.smq.pr, measure="tpr", x.measure="fpr")
 plot(fwd.smq.prf)
 fwd.smq.auc <- performance(fwd.smq.pr, measure="auc")
