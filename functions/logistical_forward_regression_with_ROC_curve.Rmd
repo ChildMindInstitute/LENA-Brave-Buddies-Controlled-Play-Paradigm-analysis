@@ -19,36 +19,36 @@ data <- data[,2:8]
 data$SM_dx <- factor(data$SM_dx)
 ```
 
+subset train/test
+```{r}
+set.seed(2)
+train_ind <- sample(seq_len(nrow(data)), size=19)
+
+train <- data[train_ind, ]
+test <- data[-train_ind, ]
+```
+
 Logistical regression predicting SM dx
 ```{r}
-model <- glm(SM_dx ~ ., family=binomial(link='logit'), data=data)
-summary(model)
-anova(model, test="Chisq")
+overfit.model <- glm(SM_dx ~ ., family=binomial(link='logit'), data=data)
+summary(overfit.model)
+anova(overfit.model, test="Chisq")
 ```
 
 ROC for logistical regression
 ```{r}
 library('ROCR')
-p <- predict(model, newdata=data, type="response")
-pr <- prediction(p, data$SM_dx)
-prf <- performance(pr, measure="tpr", x.measure="fpr")
-plot(prf)
+overfit.p <- predict(overfit.model, newdata=data, type="response")
+overfit.pr <- prediction(overfit.p, data$SM_dx)
+overfit.prf <- performance(overfit.pr, measure="tpr", x.measure="fpr")
+plot(overfit.prf)
 ```
 
 AUC for ROC
 ```{r}
-auc <- performance(pr, measure="auc")
-auc <- auc@y.values[[1]]
-auc
-```
-
-subset train/test
-```{r}
-set.seed(2)
-train_ind <- sample(seq_len(nrow(data)), size=floor(0.75 * nrow(data)))
-
-train <- data[train_ind, ]
-test <- data[-train_ind, ]
+overfit.auc <- performance(overfit.pr, measure="auc")
+overfit.auc <- overfit.auc@y.values[[1]]
+overfit.auc
 ```
 
 Logistical regression predicting SM dx
@@ -70,3 +70,40 @@ auc <- performance(pr, measure="auc")
 auc <- auc@y.values[[1]]
 auc
 ```
+
+forward logistical regression
+```{r}
+library("MASS")
+fwd.overfit.model <- stepAIC(glm(SM_dx ~ Child_Voc_Count, family=binomial(link='logit'), data=data), direction='forward',
+                     scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
+fwd.overfit.model$anova
+```
+
+ROC, AUC
+```{r}
+fwd.overfit.p <- predict(fwd.overfit.model, newdata=data, type="response")
+fwd.overfit.pr <- prediction(fwd.overfit.p, data$SM_dx)
+fwd.overfit.prf <- performance(fwd.overfit.pr, measure="tpr", x.measure="fpr")
+plot(fwd.overfit.prf)
+fwd.overfit.auc <- performance(fwd.overfit.pr, measure="auc")
+fwd.overfit.auc <- fwd.overfit.auc@y.values[[1]]
+fwd.overfit.auc
+```
+
+forward logistical regression without overfitting
+```{r}
+fwd.model <- stepAIC(glm(SM_dx ~ Child_Voc_Count, family=binomial(link='logit'), data=train), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
+fwd.model$anova
+```
+
+
+```{r}
+fwd.p <- predict(fwd.model, newdata=test, type="response")
+fwd.pr <- prediction(fwd.p, test$SM_dx)
+fwd.prf <- performance(fwd.pr, measure="tpr", x.measure="fpr")
+plot(fwd.prf)
+fwd.auc <- performance(fwd.pr, measure="auc")
+fwd.auc <- fwd.auc@y.values[[1]]
+fwd.auc
+```
+
