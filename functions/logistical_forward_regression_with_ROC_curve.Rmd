@@ -1,0 +1,29 @@
+---
+title: "logistical regressions with ROC curve"
+output: html_notebook
+---
+
+Logistical regression predicting SM dx
+```{r}
+data <- 
+model <- glm(dx ~ ., family=binomial(link='logit'), data=data)
+summary(model)
+anova(model, test="Chisq")
+```
+
+ROC for logistical regression
+```{r}
+library(ROCR)
+p <- predict(model, newdata=data, type="response")
+pr <- prediction(p, data$dx)
+prf <- performance(pr, measure="tpr", x.measure="fpr")
+plot(prf)
+```
+
+AUC for ROC
+```{r}
+auc <- performance(pr, measure="auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
