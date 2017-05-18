@@ -3,19 +3,34 @@ title: "logistical regressions with ROC curve"
 output: html_notebook
 ---
 
+get & prep data
+```{r}
+data <- read.csv('../data/CPP_data_all.csv', header=TRUE)
+library(plyr)
+data <- ddply(data, .(URSI, SM_dx), summarize,
+              Turn_Count=sum(Turn_Count),
+              Child_Voc_Count=sum(Child_Voc_Count),
+              Child_Voc_Duration=sum(Child_Voc_Duration),
+              Child_NonVoc_Duration=sum(Child_NonVoc_Duration),
+              Average_SignalLevel=mean(Average_SignalLevel),
+              Peak_SignalLevel=max(Peak_SignalLevel)
+              )
+data <- data[,2:8]
+data$SM_dx <- factor(data$SM_dx)
+```
+
 Logistical regression predicting SM dx
 ```{r}
-data <- 
-model <- glm(dx ~ ., family=binomial(link='logit'), data=data)
+model <- glm(SM_dx ~ ., family=binomial(link='logit'), data=data)
 summary(model)
 anova(model, test="Chisq")
 ```
 
 ROC for logistical regression
 ```{r}
-library(ROCR)
+library('ROCR')
 p <- predict(model, newdata=data, type="response")
-pr <- prediction(p, data$dx)
+pr <- prediction(p, data$SM_dx)
 prf <- performance(pr, measure="tpr", x.measure="fpr")
 plot(prf)
 ```
@@ -27,3 +42,31 @@ auc <- auc@y.values[[1]]
 auc
 ```
 
+subset train/test
+```{r}
+set.seed(2)
+train_ind <- sample(seq_len(nrow(data)), size=floor(0.75 * nrow(data)))
+
+train <- data[train_ind, ]
+test <- data[-train_ind, ]
+```
+
+Logistical regression predicting SM dx
+```{r}
+model <- glm(SM_dx ~ ., family=binomial(link='logit'), data=train)
+summary(model)
+anova(model, test="Chisq")
+```
+
+```{r}
+p <- predict(model, newdata=test, type="response")
+pr <- prediction(p, test$SM_dx)
+prf <- performance(pr, measure="tpr", x.measure="fpr")
+plot(prf)
+```
+
+```{r}
+auc <- performance(pr, measure="auc")
+auc <- auc@y.values[[1]]
+auc
+```
