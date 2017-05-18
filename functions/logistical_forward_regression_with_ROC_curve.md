@@ -319,13 +319,21 @@ ROC, AUC
 
 forward regression for SMQ
 
-    fwd.overfit.smq.model <- stepAIC(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, family=binomial(link='logit'), data=data, na.action=na.omit), direction='forward',
-                         scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
+    fwd.overfit.smq.model <- step(lm(smq_as+smq_hf+smq_ss+smq_id ~ 1, data=data[complete.cases(data),], na.action=na.omit), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
 
-    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
-    ##  extra argument 'family' will be disregarded
-
-    ## Start:  AIC=42.99
+    ## Start:  AIC=49.98
+    ## smq_as + smq_hf + smq_ss + smq_id ~ 1
+    ## 
+    ##                         Df Sum of Sq    RSS    AIC
+    ## + Child_Voc_Count        1    65.406 129.43 42.986
+    ## + Turn_Count             1    62.929 131.91 43.403
+    ## + Child_Voc_Duration     1    55.569 139.27 44.598
+    ## + Child_NonVoc_Duration  1    28.902 165.94 48.452
+    ## <none>                               194.84 49.985
+    ## + Average_SignalLevel    1     7.606 187.23 51.109
+    ## + Peak_SignalLevel       1     2.689 192.15 51.679
+    ## 
+    ## Step:  AIC=42.99
     ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
     ## 
     ##                         Df Sum of Sq    RSS    AIC
@@ -335,10 +343,6 @@ forward regression for SMQ
     ## + Peak_SignalLevel       1    4.3794 125.05 44.229
     ## + Turn_Count             1    1.1685 128.26 44.787
     ## + Child_NonVoc_Duration  1    0.0000 129.43 44.986
-
-    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
-    ##  extra argument 'family' will be disregarded
-
     ## 
     ## Step:  AIC=41.57
     ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration
@@ -352,110 +356,47 @@ forward regression for SMQ
 
     fwd.overfit.smq.model$anova
 
-    ## Stepwise Model Path 
-    ## Analysis of Deviance Table
-    ## 
-    ## Initial Model:
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
-    ## 
-    ## Final Model:
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration
-    ## 
-    ## 
     ##                   Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                         20   129.4320 42.98649
-    ## 2 + Child_Voc_Duration  1 18.60218        19   110.8298 41.57297
+    ## 1                      NA       NA        21   194.8376 49.98472
+    ## 2    + Child_Voc_Count -1 65.40560        20   129.4320 42.98649
+    ## 3 + Child_Voc_Duration -1 18.60218        19   110.8298 41.57297
 
-ROC, AUC
-
-    fwd.overfit.smq.p <- predict(fwd.overfit.smq.model, newdata=data, type="response")
-    fwd.overfit.smq.pr <- prediction(fwd.overfit.smq.p, data$SM_dx)
-    fwd.overfit.smq.prf <- performance(fwd.overfit.smq.pr, measure="tpr", x.measure="fpr")
-    plot(fwd.overfit.smq.prf)
-
-![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/ROC,%20AUC%20for%20forward%20linear%20regression%20for%20smq,%20overfitting-1.png)
-
-    fwd.overfit.smq.auc <- performance(fwd.overfit.smq.pr, measure="auc")
-    fwd.overfit.smq.auc <- fwd.overfit.smq.auc@y.values[[1]]
-    fwd.overfit.smq.auc
-
-    ## [1] 0.08333333
-
-forward linear regression without overfitting
-
-    fwd.smq.model <- stepAIC(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, family=binomial(link='logit'), data=train, na.action=na.omit), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
-
-    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
-    ##  extra argument 'family' will be disregarded
-
-    ## Start:  AIC=35.94
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
-    ## 
-    ##                         Df Sum of Sq     RSS    AIC
-    ## + Child_Voc_Duration     1   18.6948  92.587 34.814
-    ## + Average_SignalLevel    1   18.1246  93.157 34.918
-    ## <none>                               111.282 35.940
-    ## + Turn_Count             1    5.2883 105.994 37.113
-    ## + Peak_SignalLevel       1    3.7494 107.532 37.358
-    ## + Child_NonVoc_Duration  1    1.2461 110.036 37.749
-
-    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
-    ##  extra argument 'family' will be disregarded
+    summary(fwd.overfit.smq.model)
 
     ## 
-    ## Step:  AIC=34.81
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration
+    ## Call:
+    ## lm(formula = smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + 
+    ##     Child_Voc_Duration, data = data[complete.cases(data), ], 
+    ##     na.action = na.omit)
     ## 
-    ##                         Df Sum of Sq    RSS    AIC
-    ## + Average_SignalLevel    1   22.0717 70.515 32.184
-    ## <none>                               92.587 34.814
-    ## + Peak_SignalLevel       1    0.4582 92.129 36.730
-    ## + Turn_Count             1    0.3639 92.223 36.747
-    ## + Child_NonVoc_Duration  1    0.1917 92.395 36.779
-
-    ## Warning: In lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) :
-    ##  extra argument 'family' will be disregarded
-
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -3.5451 -1.8877  0.1258  1.4153  5.4717 
     ## 
-    ## Step:  AIC=32.18
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration + 
-    ##     Average_SignalLevel
+    ## Coefficients:
+    ##                    Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)         5.05397    0.94859   5.328 3.84e-05 ***
+    ## Child_Voc_Count     0.04496    0.02036   2.208   0.0397 *  
+    ## Child_Voc_Duration -0.04324    0.02422  -1.786   0.0901 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ##                         Df Sum of Sq    RSS    AIC
-    ## <none>                               70.515 32.184
-    ## + Turn_Count             1    3.1694 67.346 33.403
-    ## + Peak_SignalLevel       1    0.5321 69.983 34.056
-    ## + Child_NonVoc_Duration  1    0.1471 70.368 34.149
+    ## Residual standard error: 2.415 on 19 degrees of freedom
+    ## Multiple R-squared:  0.4312, Adjusted R-squared:  0.3713 
+    ## F-statistic: 7.201 on 2 and 19 DF,  p-value: 0.004703
 
-    fwd.smq.model$anova
+partial regression plot
 
-    ## Stepwise Model Path 
-    ## Analysis of Deviance Table
-    ## 
-    ## Initial Model:
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count
-    ## 
-    ## Final Model:
-    ## smq_as + smq_hf + smq_ss + smq_id ~ Child_Voc_Count + Child_Voc_Duration + 
-    ##     Average_SignalLevel
-    ## 
-    ## 
-    ##                    Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                          15  111.28185 35.94050
-    ## 2  + Child_Voc_Duration  1 18.69484        14   92.58701 34.81390
-    ## 3 + Average_SignalLevel  1 22.07171        13   70.51530 32.18448
+    library("car")
+    av.plots(fwd.overfit.smq.model)
 
-ROC, AUC
+    ## Warning: 'av.plots' is deprecated.
+    ## Use 'avPlots' instead.
+    ## See help("Deprecated") and help("car-deprecated").
 
-    fwd.smq.p <- predict(fwd.smq.model, newdata=train, type="response")
-    fwd.smq.pr <- prediction(fwd.smq.p, train$SM_dx)
-    fwd.smq.prf <- performance(fwd.smq.pr, measure="tpr", x.measure="fpr")
-    plot(fwd.smq.prf)
+![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/unnamed-chunk-1-1.png)
 
-![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/ROC,%20AUC%20for%20forward%20linear%20regression%20without%20overfitting-1.png)
+    plot(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, data=data[complete.cases(data),])
+    abline(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, data=data[complete.cases(data),]))
 
-    fwd.smq.auc <- performance(fwd.smq.pr, measure="auc")
-    fwd.smq.auc <- fwd.smq.auc@y.values[[1]]
-    fwd.smq.auc
-
-    ## [1] 0.03333333
+![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/unnamed-chunk-2-1.png)

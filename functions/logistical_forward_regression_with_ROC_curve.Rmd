@@ -112,35 +112,19 @@ fwd.auc
 
 forward regression for SMQ
 ```{r forward regression for smq, overfitting}
-fwd.overfit.smq.model <- stepAIC(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, family=binomial(link='logit'), data=data, na.action=na.omit), direction='forward',
-                     scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
+fwd.overfit.smq.model <- step(lm(smq_as+smq_hf+smq_ss+smq_id ~ 1, data=data[complete.cases(data),], na.action=na.omit), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
 fwd.overfit.smq.model$anova
+summary(fwd.overfit.smq.model)
 ```
 
-ROC, AUC
-```{r ROC, AUC for forward linear regression for smq, overfitting}
-fwd.overfit.smq.p <- predict(fwd.overfit.smq.model, newdata=data, type="response")
-fwd.overfit.smq.pr <- prediction(fwd.overfit.smq.p, data$SM_dx)
-fwd.overfit.smq.prf <- performance(fwd.overfit.smq.pr, measure="tpr", x.measure="fpr")
-plot(fwd.overfit.smq.prf)
-fwd.overfit.smq.auc <- performance(fwd.overfit.smq.pr, measure="auc")
-fwd.overfit.smq.auc <- fwd.overfit.smq.auc@y.values[[1]]
-fwd.overfit.smq.auc
+partial regression plot
+```{r}
+library("car")
+av.plots(fwd.overfit.smq.model)
 ```
 
-forward linear regression without overfitting
-```{r forward linear regression for smq without overfitting}
-fwd.smq.model <- stepAIC(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, family=binomial(link='logit'), data=train, na.action=na.omit), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
-fwd.smq.model$anova
+```{r}
+plot(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, data=data[complete.cases(data),])
+abline(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, data=data[complete.cases(data),]))
 ```
 
-ROC, AUC
-```{r ROC, AUC for forward linear regression without overfitting}
-fwd.smq.p <- predict(fwd.smq.model, newdata=train, type="response")
-fwd.smq.pr <- prediction(fwd.smq.p, train$SM_dx)
-fwd.smq.prf <- performance(fwd.smq.pr, measure="tpr", x.measure="fpr")
-plot(fwd.smq.prf)
-fwd.smq.auc <- performance(fwd.smq.pr, measure="auc")
-fwd.smq.auc <- fwd.smq.auc@y.values[[1]]
-fwd.smq.auc
-```
