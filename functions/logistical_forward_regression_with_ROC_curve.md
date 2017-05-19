@@ -186,10 +186,22 @@ logistical regression predicting SM dx
 forward logistical regression
 
     library("MASS")
-    fwd.overfit.model <- stepAIC(glm(SM_dx ~ Child_Voc_Count, family=binomial(link='logit'), data=data, na.action=na.pass), direction='forward',
+    fwd.overfit.model <- stepAIC(glm(SM_dx ~ 1, family=binomial(link='logit'), data=data, na.action=na.pass), direction='forward',
                          scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
 
-    ## Start:  AIC=28.24
+    ## Start:  AIC=35.27
+    ## SM_dx ~ 1
+    ## 
+    ##                         Df Deviance    AIC
+    ## + Child_Voc_Count        1   24.238 28.238
+    ## + Turn_Count             1   25.232 29.232
+    ## + Child_Voc_Duration     1   26.216 30.216
+    ## + Child_NonVoc_Duration  1   28.549 32.549
+    ## <none>                       33.271 35.271
+    ## + Peak_SignalLevel       1   32.795 36.795
+    ## + Average_SignalLevel    1   32.904 36.904
+    ## 
+    ## Step:  AIC=28.24
     ## SM_dx ~ Child_Voc_Count
     ## 
     ##                         Df Deviance    AIC
@@ -225,16 +237,17 @@ forward logistical regression
     ## Analysis of Deviance Table
     ## 
     ## Initial Model:
-    ## SM_dx ~ Child_Voc_Count
+    ## SM_dx ~ 1
     ## 
     ## Final Model:
     ## SM_dx ~ Child_Voc_Count + Child_Voc_Duration + Average_SignalLevel
     ## 
     ## 
     ##                    Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                          22  24.237946 28.23795
-    ## 2  + Child_Voc_Duration  1 6.350912        21  17.887033 23.88703
-    ## 3 + Average_SignalLevel  1 8.662386        20   9.224648 17.22465
+    ## 1                                          23  33.271065 35.27106
+    ## 2     + Child_Voc_Count  1 9.033119        22  24.237946 28.23795
+    ## 3  + Child_Voc_Duration  1 6.350912        21  17.887033 23.88703
+    ## 4 + Average_SignalLevel  1 8.662386        20   9.224648 17.22465
 
 ROC, AUC
 
@@ -253,9 +266,21 @@ ROC, AUC
 
 forward logistical regression without overfitting
 
-    fwd.model <- stepAIC(glm(SM_dx ~ Child_Voc_Count, family=binomial(link='logit'), data=train, na.action=na.pass), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
+    fwd.model <- stepAIC(glm(SM_dx ~ 1, family=binomial(link='logit'), data=train, na.action=na.pass), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
 
-    ## Start:  AIC=23.77
+    ## Start:  AIC=28.29
+    ## SM_dx ~ 1
+    ## 
+    ##                         Df Deviance    AIC
+    ## + Child_Voc_Count        1   19.765 23.765
+    ## + Turn_Count             1   20.959 24.959
+    ## + Child_Voc_Duration     1   21.555 25.555
+    ## + Child_NonVoc_Duration  1   22.776 26.776
+    ## <none>                       26.287 28.287
+    ## + Average_SignalLevel    1   25.771 29.771
+    ## + Peak_SignalLevel       1   26.278 30.278
+    ## 
+    ## Step:  AIC=23.77
     ## SM_dx ~ Child_Voc_Count
     ## 
     ##                         Df Deviance    AIC
@@ -291,16 +316,17 @@ forward logistical regression without overfitting
     ## Analysis of Deviance Table
     ## 
     ## Initial Model:
-    ## SM_dx ~ Child_Voc_Count
+    ## SM_dx ~ 1
     ## 
     ## Final Model:
     ## SM_dx ~ Child_Voc_Count + Child_Voc_Duration + Average_SignalLevel
     ## 
     ## 
     ##                    Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                          17  19.765295 23.76529
-    ## 2  + Child_Voc_Duration  1  5.57168        16  14.193615 20.19362
-    ## 3 + Average_SignalLevel  1  6.54597        15   7.647645 15.64765
+    ## 1                                          18  26.286937 28.28694
+    ## 2     + Child_Voc_Count  1 6.521642        17  19.765295 23.76529
+    ## 3  + Child_Voc_Duration  1 5.571680        16  14.193615 20.19362
+    ## 4 + Average_SignalLevel  1 6.545970        15   7.647645 15.64765
 
 ROC, AUC
 
@@ -400,3 +426,13 @@ partial regression plot
     abline(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Count, data=data[complete.cases(data),]))
 
 ![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/unnamed-chunk-2-1.png)
+
+    plot(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Duration, data=data[complete.cases(data),])
+    abline(lm(smq_as+smq_hf+smq_ss+smq_id ~ Child_Voc_Duration, data=data[complete.cases(data),]))
+
+![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/unnamed-chunk-3-1.png)
+
+    plot(smq_as+smq_hf+smq_ss+smq_id ~ Average_SignalLevel, data=data[complete.cases(data),])
+    abline(lm(smq_as+smq_hf+smq_ss+smq_id ~ Average_SignalLevel, data=data[complete.cases(data),]))
+
+![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/unnamed-chunk-4-1.png)
