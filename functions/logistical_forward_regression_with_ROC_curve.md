@@ -19,7 +19,7 @@ get & prep data
 subset train/test
 
     set.seed(2)
-    train_ind <- sample(seq_len(nrow(data)), size=19)
+    train_ind <- sample(seq_len(nrow(data)), size=12)
 
     train <- data[train_ind, ]
     test <- data[-train_ind, ]
@@ -114,8 +114,6 @@ logistical regression predicting SM dx
 
     model <- glm(SM_dx ~ Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel, family=binomial(link='logit'), data=train, na.action=na.pass)
 
-    ## Warning: glm.fit: algorithm did not converge
-
     ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
     summary(model)
@@ -127,28 +125,36 @@ logistical regression predicting SM dx
     ##     family = binomial(link = "logit"), data = train, na.action = na.pass)
     ## 
     ## Deviance Residuals: 
-    ##        Min          1Q      Median          3Q         Max  
-    ## -7.069e-05  -2.100e-08   2.100e-08   2.100e-08   7.666e-05  
+    ##          5          17          13           4          19          18  
+    ##  2.110e-08  -1.166e-05   8.395e-06   4.426e-06   1.364e-05  -5.201e-06  
+    ##          3          15           8           9          16          21  
+    ##  4.375e-07  -1.112e-05  -2.110e-08   2.110e-08  -2.110e-08  -2.110e-08  
     ## 
     ## Coefficients:
     ##                         Estimate Std. Error z value Pr(>|z|)
-    ## (Intercept)              9365.13 3498867.55   0.003    0.998
-    ## Child_Voc_Count           -31.77   11005.62  -0.003    0.998
-    ## Turn_Count                 13.67    4763.53   0.003    0.998
-    ## Child_Voc_Duration         30.76   10676.82   0.003    0.998
-    ## Child_NonVoc_Duration      23.28    8568.59   0.003    0.998
-    ## Average_SignalLevel        31.11   12815.23   0.002    0.998
-    ## Peak_SignalLevel         -132.80   48024.30  -0.003    0.998
+    ## (Intercept)           -9.737e+02  2.299e+07       0        1
+    ## Child_Voc_Count       -1.630e+00  5.739e+04       0        1
+    ## Turn_Count             4.198e-01  3.277e+04       0        1
+    ## Child_Voc_Duration     1.130e+00  6.051e+04       0        1
+    ## Child_NonVoc_Duration  2.897e+00  1.564e+05       0        1
+    ## Average_SignalLevel    1.914e+01  5.935e+05       0        1
+    ## Peak_SignalLevel      -3.290e+00  1.760e+05       0        1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
-    ##     Null deviance: 2.6287e+01  on 18  degrees of freedom
-    ## Residual deviance: 1.6644e-08  on 12  degrees of freedom
+    ##     Null deviance: 1.6636e+01  on 11  degrees of freedom
+    ## Residual deviance: 5.6295e-10  on  5  degrees of freedom
     ## AIC: 14
     ## 
-    ## Number of Fisher Scoring iterations: 25
+    ## Number of Fisher Scoring iterations: 24
 
     anova(model, test="Chisq")
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 
     ## Analysis of Deviance Table
     ## 
@@ -160,13 +166,13 @@ logistical regression predicting SM dx
     ## 
     ## 
     ##                       Df Deviance Resid. Df Resid. Dev Pr(>Chi)   
-    ## NULL                                     18    26.2869            
-    ## Child_Voc_Count        1   6.5216        17    19.7653 0.010657 * 
-    ## Turn_Count             1   0.0379        16    19.7274 0.845612   
-    ## Child_Voc_Duration     1   7.1420        15    12.5854 0.007530 **
-    ## Child_NonVoc_Duration  1   1.3874        14    11.1980 0.238847   
-    ## Average_SignalLevel    1   4.0002        13     7.1978 0.045494 * 
-    ## Peak_SignalLevel       1   7.1978        12     0.0000 0.007299 **
+    ## NULL                                     11    16.6355            
+    ## Child_Voc_Count        1   6.6058        10    10.0297 0.010164 * 
+    ## Turn_Count             1   0.8549         9     9.1748 0.355174   
+    ## Child_Voc_Duration     1   9.1748         8     0.0000 0.002454 **
+    ## Child_NonVoc_Duration  1   0.0000         7     0.0000 0.999991   
+    ## Average_SignalLevel    1   0.0000         6     0.0000 0.999991   
+    ## Peak_SignalLevel       1   0.0000         5     0.0000 1.000000   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -181,7 +187,7 @@ logistical regression predicting SM dx
     auc <- auc@y.values[[1]]
     auc
 
-    ## [1] 0.6666667
+    ## [1] 0.8194444
 
 forward logistical regression
 
@@ -268,47 +274,53 @@ forward logistical regression without overfitting
 
     fwd.model <- stepAIC(glm(SM_dx ~ 1, family=binomial(link='logit'), data=train, na.action=na.pass), direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
 
-    ## Start:  AIC=28.29
+    ## Start:  AIC=18.64
     ## SM_dx ~ 1
     ## 
     ##                         Df Deviance    AIC
-    ## + Child_Voc_Count        1   19.765 23.765
-    ## + Turn_Count             1   20.959 24.959
-    ## + Child_Voc_Duration     1   21.555 25.555
-    ## + Child_NonVoc_Duration  1   22.776 26.776
-    ## <none>                       26.287 28.287
-    ## + Average_SignalLevel    1   25.771 29.771
-    ## + Peak_SignalLevel       1   26.278 30.278
+    ## + Child_Voc_Count        1   10.030 14.030
+    ## + Child_Voc_Duration     1   11.172 15.172
+    ## + Turn_Count             1   12.617 16.617
+    ## + Child_NonVoc_Duration  1   12.803 16.803
+    ## <none>                       16.636 18.636
+    ## + Peak_SignalLevel       1   15.357 19.357
+    ## + Average_SignalLevel    1   16.199 20.199
     ## 
-    ## Step:  AIC=23.77
+    ## Step:  AIC=14.03
     ## SM_dx ~ Child_Voc_Count
-    ## 
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
     ##                         Df Deviance    AIC
-    ## + Child_Voc_Duration     1   14.194 20.194
-    ## + Average_SignalLevel    1   16.105 22.105
-    ## <none>                       19.765 23.765
-    ## + Peak_SignalLevel       1   19.569 25.569
-    ## + Child_NonVoc_Duration  1   19.593 25.593
-    ## + Turn_Count             1   19.727 25.727
+    ## + Average_SignalLevel    1   0.0000  6.000
+    ## + Child_Voc_Duration     1   6.5581 12.558
+    ## + Peak_SignalLevel       1   7.8576 13.858
+    ## <none>                      10.0297 14.030
+    ## + Turn_Count             1   9.1748 15.175
+    ## + Child_NonVoc_Duration  1   9.4278 15.428
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
     ## 
-    ## Step:  AIC=20.19
-    ## SM_dx ~ Child_Voc_Count + Child_Voc_Duration
-    ## 
-    ##                         Df Deviance    AIC
-    ## + Average_SignalLevel    1   7.6476 15.648
-    ## <none>                      14.1936 20.194
-    ## + Turn_Count             1  12.5854 20.585
-    ## + Child_NonVoc_Duration  1  13.2794 21.279
-    ## + Peak_SignalLevel       1  14.1165 22.116
-    ## 
-    ## Step:  AIC=15.65
-    ## SM_dx ~ Child_Voc_Count + Child_Voc_Duration + Average_SignalLevel
-    ## 
-    ##                         Df Deviance    AIC
-    ## <none>                       7.6476 15.648
-    ## + Peak_SignalLevel       1   6.9896 16.990
-    ## + Turn_Count             1   7.3164 17.316
-    ## + Child_NonVoc_Duration  1   7.4197 17.420
+    ## Step:  AIC=6
+    ## SM_dx ~ Child_Voc_Count + Average_SignalLevel
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+    ##                         Df   Deviance AIC
+    ## <none>                     3.9650e-10   6
+    ## + Child_Voc_Duration     1 2.4017e-10   8
+    ## + Peak_SignalLevel       1 2.9990e-10   8
+    ## + Child_NonVoc_Duration  1 3.5604e-10   8
+    ## + Turn_Count             1 3.8443e-10   8
 
     fwd.model$anova
 
@@ -319,14 +331,13 @@ forward logistical regression without overfitting
     ## SM_dx ~ 1
     ## 
     ## Final Model:
-    ## SM_dx ~ Child_Voc_Count + Child_Voc_Duration + Average_SignalLevel
+    ## SM_dx ~ Child_Voc_Count + Average_SignalLevel
     ## 
     ## 
-    ##                    Step Df Deviance Resid. Df Resid. Dev      AIC
-    ## 1                                          18  26.286937 28.28694
-    ## 2     + Child_Voc_Count  1 6.521642        17  19.765295 23.76529
-    ## 3  + Child_Voc_Duration  1 5.571680        16  14.193615 20.19362
-    ## 4 + Average_SignalLevel  1 6.545970        15   7.647645 15.64765
+    ##                    Step Df  Deviance Resid. Df   Resid. Dev      AIC
+    ## 1                                           11 1.663553e+01 18.63553
+    ## 2     + Child_Voc_Count  1  6.605843        10 1.002969e+01 14.02969
+    ## 3 + Average_SignalLevel  1 10.029689         9 3.964957e-10  6.00000
 
 ROC, AUC
 
@@ -341,7 +352,7 @@ ROC, AUC
     fwd.auc <- fwd.auc@y.values[[1]]
     fwd.auc
 
-    ## [1] 1
+    ## [1] 0.8333333
 
 forward regression for SMQ
 

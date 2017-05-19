@@ -25,7 +25,7 @@ data$SM_dx <- factor(data$SM_dx)
 subset train/test
 ```{r subset train/test}
 set.seed(2)
-train_ind <- sample(seq_len(nrow(data)), size=19)
+train_ind <- sample(seq_len(nrow(data)), size=12)
 
 train <- data[train_ind, ]
 test <- data[-train_ind, ]
