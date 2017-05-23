@@ -6,6 +6,7 @@ output: md_document
 get & prep data
 ```{r get & prep data}
 library(car)
+library(hash)
 library(MASS)
 library(MESS)
 library(plyr)
@@ -36,8 +37,6 @@ logistical regression predicting SM dx
 ```{r logistical regression predicting SM dx}
 lreg_fp <- vector()
 lreg_tp <- vector()
-#lreg_predictions <- vector()
-#lreg_labels <- vector()
 for(i in 1:nrow(data)){
   train <- data[-i,]
   test <- data[i,]
@@ -46,20 +45,14 @@ for(i in 1:nrow(data)){
                 na.action=na.pass)
   lreg_p <- predict(lreg_model, test, "response")
   lreg_pr <- prediction(lreg_p, test$SM_dx)
-  #lreg_predictions <- c(lreg_predictions, lreg_pr@predictions)
-  #lreg_labels <- c(lreg_labels, lreg_pr@labels)
   lreg_fp <- c(lreg_fp, lreg_pr@fp[[1]][[2]])
   lreg_tp <- c(lreg_tp, lreg_pr@tp[[1]][[2]])
-  #summary(lreg_model)
-  #anova(lreg_model, test="Chisq")
+  print(summary(lreg_model))
+  print(anova(lreg_model, test="Chisq"))
   remove(train)
   remove(test)
 }
 remove(i)
-lreg_model <- glm(SM_dx~Child_Voc_Count+Turn_Count+Child_Voc_Duration+Child_NonVoc_Duration+
-              Average_SignalLevel+Peak_SignalLevel, family=binomial(link='logit'), data=data)
-print(summary(lreg_model))
-print(anova(lreg_model, test="Chisq"))
 ```
 
 ```{r ROC for logistical regression predicting SM dx}
@@ -73,8 +66,6 @@ logistical forward regression predicting SM dx
 ```{r logistical forward regression predicting SM dx}
 lfreg_fp <- vector()
 lfreg_tp <- vector()
-#lreg_predictions <- vector()
-#lreg_labels <- vector()
 for(i in 1:nrow(data)){
   train <- data[-i,]
   test <- data[i,]
@@ -83,21 +74,14 @@ for(i in 1:nrow(data)){
                 Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
   lfreg_p <- predict(lfreg_model, test, "response")
   lfreg_pr <- prediction(lfreg_p, test$SM_dx)
-  #lreg_predictions <- c(lreg_predictions, lreg_pr@predictions)
-  #lreg_labels <- c(lreg_labels, lreg_pr@labels)
   lfreg_fp <- c(lfreg_fp, lfreg_pr@fp[[1]][[2]])
   lfreg_tp <- c(lfreg_tp, lfreg_pr@tp[[1]][[2]])
-  #summary(lreg_model)
-  #anova(lreg_model, test="Chisq")
+  print(summary(lreg_model))
+  print(anova(lreg_model, test="Chisq"))
   remove(train)
   remove(test)
 }
 remove(i)
-lfreg_model <- stepAIC(glm(SM_dx ~ 1, family=binomial(link='logit'), data=data, na.action=na.pass),
-              direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+
-              Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
-print(summary(lfreg_model))
-print(anova(lfreg_model, test="Chisq"))
 ```
 
 ```{r ROC for logistical forward regression predicting SM dx}
@@ -111,32 +95,34 @@ forward regression for SMQ
 ```{r forward regression for SMQ}
 fsmq_predicted <- vector()
 fsmq_actual <- vector()
-#lreg_predictions <- vector()
-#lreg_labels <- vector()
+fsmq_models <- vector()
+fsmq_predictors <- hash()
 for(i in 1:nrow(smq_data)){
   train <- smq_data[-i,]
   test <- smq_data[i,]
   fsmq_model <- step(lm(smq_as+smq_hf+smq_ss+smq_id~1, data=train, na.action=na.omit),
                 direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+
                 Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
+  print(summary(fsmq_model))
+  print(fsmq_model$anova)
+  avPlots(fsmq_model)
   fsmq_predicted <- c(fsmq_predicted, predict(fsmq_model, test))
   fsmq_actual <- c(fsmq_actual, test$smq_as+test$smq_hf+test$smq_ss+test$smq_id)
-  # fsmq_pr <- prediction(fsmq_p, smq_as+smq_hf+smq_ss+smq_id)
-  #lreg_predictions <- c(lreg_predictions, lreg_pr@predictions)
-  #lreg_labels <- c(lreg_labels, lreg_pr@labels)
-  #fsmq_fp <- c(fsmq_fp, fsmq_pr@fp[[1]][[2]])
-  #fsmq_tp <- c(fsmq_tp, fsmq_pr@tp[[1]][[2]])
-  #summary(lreg_model)
-  #anova(lreg_model, test="Chisq")
+  fsmq_models <- c(fsmq_models, fsmq_model)
+  for(j in 1:length(names(fsmq_model$coefficients))){
+    if(has.key(names(fsmq_model$coefficients)[[j]], fsmq_predictors)){
+      .set(fsmq_predictors, names(fsmq_model$coefficients)[[j]],
+           as.numeric(fsmq_predictors[[names(fsmq_model$coefficients)[[j]]]]) + 1)
+    }else{
+      .set(fsmq_predictors, names(fsmq_model$coefficients)[[j]], 1)
+    }
+  }
+  remove(j)
   remove(train)
   remove(test)
 }
+print(fsmq_predictors)
 remove(i)
-fsmq_model <- step(lm(smq_as+smq_hf+smq_ss+smq_id ~ 1, data=smq_data, na.action=na.omit),
-              direction='forward', scope=~Child_Voc_Count+Turn_Count+Child_Voc_Duration+
-              Child_NonVoc_Duration+Average_SignalLevel+Peak_SignalLevel)
-print(summary(fsmq_model))
-print(fsmq_model$anova)
 ```
 
 ```{r plot for forward regression predicting SMQ}
@@ -145,11 +131,6 @@ plot(cumsum(fsmq_predicted)/sum(fsmq_predicted), cumsum(fsmq_actual)/sum(fsmq_ac
      xlab="Predicted SMQ symptom severity",ylab="Reported SMQ symptom severity", asp=1)
 abline(lm(as.numeric(cumsum(fsmq_actual)/sum(fsmq_actual))~as.numeric(cumsum(fsmq_predicted)/sum(
        fsmq_predicted))))
-```
-
-partial regression plot
-```{r}
-av.plots(fsmq_model)
 ```
 
 ```{r}
