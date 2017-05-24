@@ -37,6 +37,7 @@ logistical regression predicting SM dx
 ```{r logistical regression predicting SM dx}
 lreg_fp <- vector()
 lreg_tp <- vector()
+lreg_predictors <- hash()
 for(i in 1:nrow(data)){
   train <- data[-i,]
   test <- data[i,]
@@ -47,12 +48,22 @@ for(i in 1:nrow(data)){
   lreg_pr <- prediction(lreg_p, test$SM_dx)
   lreg_fp <- c(lreg_fp, lreg_pr@fp[[1]][[2]])
   lreg_tp <- c(lreg_tp, lreg_pr@tp[[1]][[2]])
+  for(j in 1:length(names(lreg_model$coefficients))){
+    if(has.key(names(lreg_model$coefficients)[[j]], lreg_predictors)){
+      .set(lreg_predictors, names(lreg_model$coefficients)[[j]],
+           as.numeric(lreg_predictors[[names(lreg_model$coefficients)[[j]]]]) + 1)
+    }else{
+      .set(lreg_predictors, names(lreg_model$coefficients)[[j]], 1)
+    }
+  }
+  remove(j)
   print(summary(lreg_model))
   print(anova(lreg_model, test="Chisq"))
   remove(train)
   remove(test)
 }
 remove(i)
+print(lreg_predictors)
 ```
 
 ```{r ROC for logistical regression predicting SM dx}
@@ -66,6 +77,7 @@ logistical forward regression predicting SM dx
 ```{r logistical forward regression predicting SM dx}
 lfreg_fp <- vector()
 lfreg_tp <- vector()
+lfreg_predictors <- hash()
 for(i in 1:nrow(data)){
   train <- data[-i,]
   test <- data[i,]
@@ -78,10 +90,20 @@ for(i in 1:nrow(data)){
   lfreg_tp <- c(lfreg_tp, lfreg_pr@tp[[1]][[2]])
   print(summary(lreg_model))
   print(anova(lreg_model, test="Chisq"))
+  for(j in 1:length(names(lfreg_model$coefficients))){
+    if(has.key(names(lfreg_model$coefficients)[[j]], lfreg_predictors)){
+      .set(lfreg_predictors, names(lfreg_model$coefficients)[[j]],
+           as.numeric(lfreg_predictors[[names(lfreg_model$coefficients)[[j]]]]) + 1)
+    }else{
+      .set(lfreg_predictors, names(lfreg_model$coefficients)[[j]], 1)
+    }
+  }
+  remove(j)
   remove(train)
   remove(test)
 }
 remove(i)
+print(lfreg_predictors)
 ```
 
 ```{r ROC for logistical forward regression predicting SM dx}
@@ -127,10 +149,10 @@ remove(i)
 
 ```{r plot for forward regression predicting SMQ}
 par(pty="s")
-plot(cumsum(fsmq_predicted)/sum(fsmq_predicted), cumsum(fsmq_actual)/sum(fsmq_actual), type='p',
+plot(fsmq_predicted, fsmq_actual, type='p',
      xlab="Predicted SMQ symptom severity",ylab="Reported SMQ symptom severity", asp=1)
-abline(lm(as.numeric(cumsum(fsmq_actual)/sum(fsmq_actual))~as.numeric(cumsum(fsmq_predicted)/sum(
-       fsmq_predicted))))
+abline(lm(as.numeric(fsmq_actual)~as.numeric(fsmq_predicted)))
+text(0.6*max(fsmq_predicted), 0.05*max(fsmq_actual), labels=paste("R\u00b2: ", 1-(sum((fsmq_actual-fsmq_predicted)^2)/sum((fsmq_actual-mean(fsmq_actual))^2))))
 ```
 
 ```{r}

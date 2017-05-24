@@ -51,6 +51,7 @@ logistical regression predicting SM dx
 
     lreg_fp <- vector()
     lreg_tp <- vector()
+    lreg_predictors <- hash()
     for(i in 1:nrow(data)){
       train <- data[-i,]
       test <- data[i,]
@@ -61,6 +62,15 @@ logistical regression predicting SM dx
       lreg_pr <- prediction(lreg_p, test$SM_dx)
       lreg_fp <- c(lreg_fp, lreg_pr@fp[[1]][[2]])
       lreg_tp <- c(lreg_tp, lreg_pr@tp[[1]][[2]])
+      for(j in 1:length(names(lreg_model$coefficients))){
+        if(has.key(names(lreg_model$coefficients)[[j]], lreg_predictors)){
+          .set(lreg_predictors, names(lreg_model$coefficients)[[j]],
+               as.numeric(lreg_predictors[[names(lreg_model$coefficients)[[j]]]]) + 1)
+        }else{
+          .set(lreg_predictors, names(lreg_model$coefficients)[[j]], 1)
+        }
+      }
+      remove(j)
       print(summary(lreg_model))
       print(anova(lreg_model, test="Chisq"))
       remove(train)
@@ -1279,6 +1289,16 @@ logistical regression predicting SM dx
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
     remove(i)
+    print(lreg_predictors)
+
+    ## <hash> containing 7 key-value pair(s).
+    ##   (Intercept) : 24
+    ##   Average_SignalLevel : 24
+    ##   Child_NonVoc_Duration : 24
+    ##   Child_Voc_Count : 24
+    ##   Child_Voc_Duration : 24
+    ##   Peak_SignalLevel : 24
+    ##   Turn_Count : 24
 
     par(pty="s")
     plot(c(0,cumsum(lreg_fp)/sum(lreg_fp),1), c(0,cumsum(lreg_tp)/sum(lreg_tp),1), type='l', xlab=
@@ -1291,6 +1311,7 @@ logistical forward regression predicting SM dx
 
     lfreg_fp <- vector()
     lfreg_tp <- vector()
+    lfreg_predictors <- hash()
     for(i in 1:nrow(data)){
       train <- data[-i,]
       test <- data[i,]
@@ -1303,6 +1324,15 @@ logistical forward regression predicting SM dx
       lfreg_tp <- c(lfreg_tp, lfreg_pr@tp[[1]][[2]])
       print(summary(lreg_model))
       print(anova(lreg_model, test="Chisq"))
+      for(j in 1:length(names(lfreg_model$coefficients))){
+        if(has.key(names(lfreg_model$coefficients)[[j]], lfreg_predictors)){
+          .set(lfreg_predictors, names(lfreg_model$coefficients)[[j]],
+               as.numeric(lfreg_predictors[[names(lfreg_model$coefficients)[[j]]]]) + 1)
+        }else{
+          .set(lfreg_predictors, names(lfreg_model$coefficients)[[j]], 1)
+        }
+      }
+      remove(j)
       remove(train)
       remove(test)
     }
@@ -3690,6 +3720,14 @@ logistical forward regression predicting SM dx
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
     remove(i)
+    print(lfreg_predictors)
+
+    ## <hash> containing 5 key-value pair(s).
+    ##   (Intercept) : 24
+    ##   Average_SignalLevel : 24
+    ##   Child_Voc_Count : 24
+    ##   Child_Voc_Duration : 24
+    ##   Peak_SignalLevel : 2
 
     par(pty="s")
     plot(c(0,cumsum(lfreg_fp)/sum(lfreg_fp),1), c(0,cumsum(lfreg_tp)/sum(lfreg_tp),1), type='l', xlab=
@@ -5073,10 +5111,10 @@ forward regression for SMQ
     remove(i)
 
     par(pty="s")
-    plot(cumsum(fsmq_predicted)/sum(fsmq_predicted), cumsum(fsmq_actual)/sum(fsmq_actual), type='p',
+    plot(fsmq_predicted, fsmq_actual, type='p',
          xlab="Predicted SMQ symptom severity",ylab="Reported SMQ symptom severity", asp=1)
-    abline(lm(as.numeric(cumsum(fsmq_actual)/sum(fsmq_actual))~as.numeric(cumsum(fsmq_predicted)/sum(
-           fsmq_predicted))))
+    abline(lm(as.numeric(fsmq_actual)~as.numeric(fsmq_predicted)))
+    text(0.6*max(fsmq_predicted), 0.05*max(fsmq_actual), labels=paste("R\u00b2: ", 1-(sum((fsmq_actual-fsmq_predicted)^2)/sum((fsmq_actual-mean(fsmq_actual))^2))))
 
 ![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/plot%20for%20forward%20regression%20predicting%20SMQ-1.png)
 
