@@ -5112,9 +5112,8 @@ forward regression for SMQ
 
     par(pty="s")
     plot(fsmq_predicted, fsmq_actual, type='p',
-         xlab="Predicted SMQ symptom severity",ylab="Reported SMQ symptom severity", asp=1)
+         xlab="Predicted SMQ symptom severity",ylab="Reported SMQ symptom severity", asp=1, sub=paste("Pearson's r=",  cor(as.numeric(fsmq_predicted), as.numeric(fsmq_actual), method="pearson"), "; R\u00b2: ", 1-(sum((fsmq_actual-fsmq_predicted)^2)/sum((fsmq_actual-mean(fsmq_actual))^2))))
     abline(lm(as.numeric(fsmq_actual)~as.numeric(fsmq_predicted)))
-    text(0.6*max(fsmq_predicted), 0.05*max(fsmq_actual), labels=paste("R\u00b2: ", 1-(sum((fsmq_actual-fsmq_predicted)^2)/sum((fsmq_actual-mean(fsmq_actual))^2))))
 
 ![](logistical_forward_regression_with_ROC_curve_files/figure-markdown_strict/plot%20for%20forward%20regression%20predicting%20SMQ-1.png)
 
