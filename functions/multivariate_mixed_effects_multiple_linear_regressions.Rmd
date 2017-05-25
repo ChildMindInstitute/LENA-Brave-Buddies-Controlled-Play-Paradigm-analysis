@@ -1,0 +1,70 @@
+---
+title: "multivariate mixed effects multiple linear regressions"
+output: md_document
+---
+
+get & prep data
+```{r get & prep data}
+library(car)
+library(hash)
+library(MASS)
+library(MESS)
+library(plyr)
+library(ROCR)
+data <- read.csv('../data/CPP_data_all.csv', header=TRUE)
+smq <- read.csv('../data/SMQ.csv', header=TRUE)
+smq$smq_id <- (18 - smq$smq_id) / 6
+data <- merge(data, smq, by="URSI", all=TRUE)
+remove(smq)
+# invert SMQ for severity
+data$smq_as <- 3 - data$smq_as
+data$smq_hf <- 3 - data$smq_hf
+data$smq_ss <- 3 - data$smq_ss
+data$smq_id <- 3 - data$smq_id
+data$SM_dx <- factor(data$SM_dx)
+smq_data <- data[complete.cases(data),]
+```
+
+multivariate forward linear regression for SMQ
+```{r forward regression for SMQ}
+smq <- c("smq_as", "smq_hf", "smq_ss", "smq_id")
+fsmq_predicted <- vector()
+fsmq_actual <- vector()
+fsmq_models <- vector()
+fsmq_predictors <- hash()
+kii <- vector()
+for(k in 1:4){
+  predicted <- vector()
+  actual <- vector()
+  models <- vector()
+  predictors <- hash()
+  for(i in 1:nrow(smq_data)){
+    train <- smq_data[-i,]
+    test <- smq_data[i,]
+    model <- step(lm(get(smq[k])~1, data=train, na.action=na.omit),
+             direction='forward', scope=~Child_Voc_Count+Turn_Count+
+             Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+
+             Peak_SignalLevel)
+    for(j in 1:length(names(model$coefficients))){
+      if(has.key(names(model$coefficients)[[j]], predictors)){
+        .set(predictors, names(model$coefficients)[[j]],
+             as.numeric(predictors[[names(model$coefficients)[[j]]]])+ 1)
+      }else{
+        .set(predictors, names(model$coefficients)[[j]], 1)
+      }
+    }
+    models <- c(models, model)
+    predicted <- c(predicted, predict(model, test))
+    actual <- c(actual, test[[smq[k]]])
+    remove(j)
+    remove(train)
+    remove(test)
+  }
+  fsmq_models <- c(fsmq_models, models)
+  fsmq_predicted <- c(fsmq_predicted, predicted)
+  fsmq_actual <- c(fsmq_actual, actual)
+  .set(fsmq_predictors, smq[k], predictors)
+}
+print(fsmq_predictors)
+remove(i)
+```
