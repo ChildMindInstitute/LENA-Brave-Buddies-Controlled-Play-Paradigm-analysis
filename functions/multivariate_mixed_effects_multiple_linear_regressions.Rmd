@@ -5,9 +5,10 @@ output: md_document
 
 get & prep data
 ```{r get & prep data}
+library(blme)
 library(car)
 library(hash)
-library(lme4)
+#library(lme4)
 library(MASS)
 library(MESS)
 library(plyr)
@@ -43,10 +44,11 @@ for(k in 1:4){
   for(i in 1:nrow(smq_data)){
     train <- smq_data[-i,]
     test <- smq_data[i,]
-    model <- lmer(get(smq[k])~Child_Voc_Count+Turn_Count+
+    model <- blmer(get(smq[k])~Child_Voc_Count+Turn_Count+
              Child_Voc_Duration+Child_NonVoc_Duration+Average_SignalLevel+
-             Peak_SignalLevel+Session_Type+Session+(1|URSI)+(1|Age)+(1|Grade)+
-             (1|Gender)+(1|Home_Language1)+(1|Home_Language2), data=train)
+             Peak_SignalLevel+(1|URSI)+(1|Age)+(1|Grade)+
+             (1|Gender)+(1|Home_Language1)+(1|Home_Language2), data=train, REML=FALSE,
+             control = lmerControl(optimizer ="Nelder_Mead"))
     for(j in 1:length(names(model$coefficients))){
       if(has.key(names(model$coefficients)[[j]], predictors)){
         .set(predictors, names(model$coefficients)[[j]],
