@@ -47,8 +47,8 @@ SM_DX_ROC_plot <- function(data, formula, plotlabel) {
                   na.action=na.pass)
     lreg_p <- c(lreg_p, predict(gl_model, test, "response"))
     lreg_l <- c(lreg_l, (test$SM_dx))
-    print(summary(gl_model))
-    print(anova(gl_model, test="Chisq"))
+    #print(summary(gl_model))
+    #print(anova(gl_model, test="Chisq"))
     remove(train)
     remove(test)
   }
