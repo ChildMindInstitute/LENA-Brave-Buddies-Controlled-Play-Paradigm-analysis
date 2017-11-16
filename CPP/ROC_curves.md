@@ -84,12 +84,12 @@ predicting SM dx by vocalization counts
 
 predicting SM dx by vocalization duration
 
-      SM_DX_ROC_plot(data, "SM_dx~Child_Voc_Duration", "ROC Curve: SM diagnosis by vocalization duration")
+      SM_DX_ROC_plot(data, "SM_dx~Child_Voc_Duration", "SM diagnosis by vocalization duration")
 
 ![](ROC_curves_files/figure-markdown_strict/predicting%20SM%20dx%20by%20vocalization%20duration-1.png)
 
 predicting SM dx by conversational turns
 
-      SM_DX_ROC_plot(data, "SM_dx~Turn_Count", "ROC Curve: SM diagnosis by conversational turn count")
+      SM_DX_ROC_plot(data, "SM_dx~Turn_Count", "SM diagnosis by conversational turn count")
 
 ![](ROC_curves_files/figure-markdown_strict/predicting%20SM%20dx%20by%20conversational%20turns-1.png)
