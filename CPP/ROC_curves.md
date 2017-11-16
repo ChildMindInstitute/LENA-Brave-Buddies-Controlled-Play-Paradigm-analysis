@@ -48,7 +48,6 @@ get & prep data
     smq_data <- data[complete.cases(data),]
 
     SM_DX_ROC_plot <- function(data, formula, plotlabel) {
-      plotlabel <- "SM diagnosis by vocalization count"
       lreg_p <- vector()
       lreg_l <- vector()
       lreg_fp <- vector()
