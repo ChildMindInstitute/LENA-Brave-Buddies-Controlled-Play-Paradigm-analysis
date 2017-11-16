@@ -1,0 +1,81 @@
+---
+title: "ROC curves"
+output: md_document
+---
+
+get & prep data
+```{r get & prep data}
+library(car)
+library(hash)
+library(MASS)
+library(MESS)
+library(plyr)
+library(ROCR)
+data <- read.csv('../data/CPP_data_all.csv', header=TRUE)
+smq <- read.csv('../data/SMQ.csv', header=TRUE)
+smq$smq_id <- (18 - smq$smq_id) / 6
+data <- ddply(data, .(URSI, SM_dx), summarize,
+              Turn_Count=sum(Turn_Count),
+              Child_Voc_Count=sum(Child_Voc_Count),
+              Child_Voc_Duration=sum(Child_Voc_Duration),
+              Child_NonVoc_Duration=sum(Child_NonVoc_Duration),
+              Average_SignalLevel=mean(Average_SignalLevel),
+              Peak_SignalLevel=max(Peak_SignalLevel)
+              )
+data <- merge(data, smq, by="URSI", all=TRUE)
+remove(smq)
+# invert SMQ for severity
+data$smq_as <- 3 - data$smq_as
+data$smq_hf <- 3 - data$smq_hf
+data$smq_ss <- 3 - data$smq_ss
+data$smq_id <- 3 - data$smq_id
+data$SM_dx <- factor(data$SM_dx)
+smq_data <- data[complete.cases(data),]
+```
+
+```{r ROC plot jackknife formula}
+SM_DX_ROC_plot <- function(data, formula, plotlabel) {
+  plotlabel <- "SM diagnosis by vocalization count"
+  lreg_p <- vector()
+  lreg_l <- vector()
+  lreg_fp <- vector()
+  lreg_tp <- vector()
+  for(i in 1:nrow(data)){
+    train <- data[-i,]
+    test <- data[i,]
+    gl_model <- glm(formula=formula, family=binomial(link='logit'), data=train,
+                  na.action=na.pass)
+    lreg_p <- c(lreg_p, predict(gl_model, test, "response"))
+    lreg_l <- c(lreg_l, (test$SM_dx))
+    print(summary(gl_model))
+    print(anova(gl_model, test="Chisq"))
+    remove(train)
+    remove(test)
+  }
+  remove(i)
+  pred <- prediction(lreg_p, lreg_l)
+  perf <- performance(pred, "tpr", "fpr")
+  auc <- sprintf("%.4f", round(as.numeric(performance(pred, "auc")@y.values), 4))
+  par(pty = "s")
+  plot(perf,
+       main=paste("ROC curve: ", plotlabel),
+       xlim=c(0,1), ylim=c(0,1), asp=1)
+  text(0.6, 0.2,
+       labels=paste("auc: ", auc))
+}
+```
+
+predicting SM dx by vocalization counts
+```{r predicting SM dx by vocalization counts}
+  SM_DX_ROC_plot(data, "SM_dx~Child_Voc_Count", "SM diagnosis by vocalization count")
+```
+
+predicting SM dx by vocalization duration
+```{r predicting SM dx by vocalization duration}
+  SM_DX_ROC_plot(data, "SM_dx~Child_Voc_Duration", "ROC Curve: SM diagnosis by vocalization duration")
+```
+
+predicting SM dx by conversational turns
+```{r predicting SM dx by conversational turns}
+  SM_DX_ROC_plot(data, "SM_dx~Turn_Count", "ROC Curve: SM diagnosis by conversational turn count")
+```
