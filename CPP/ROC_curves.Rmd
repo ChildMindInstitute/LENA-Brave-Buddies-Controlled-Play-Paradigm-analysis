@@ -34,7 +34,7 @@ smq_data <- data[complete.cases(data),]
 ```
 
 ```{r ROC plot jackknife formula}
-SM_DX_ROC_plot <- function(data, formula, plotlabel) {
+SM_DX_pred <- function(data, formula) {
   lreg_p <- vector()
   lreg_l <- vector()
   lreg_fp <- vector()
@@ -43,7 +43,7 @@ SM_DX_ROC_plot <- function(data, formula, plotlabel) {
     train <- data[-i,]
     test <- data[i,]
     gl_model <- glm(formula=formula, family=binomial(link='logit'), data=train,
-                  na.action=na.pass)
+                  na.action=na.exclude)
     lreg_p <- c(lreg_p, predict(gl_model, test, "response"))
     lreg_l <- c(lreg_l, (test$SM_dx))
     #print(summary(gl_model))
@@ -53,6 +53,11 @@ SM_DX_ROC_plot <- function(data, formula, plotlabel) {
   }
   remove(i)
   pred <- prediction(lreg_p, lreg_l)
+  return(pred)
+}
+
+SM_DX_ROC_plot <- function(data, formula, plotlabel) {
+  pred <- SM_DX_pred(data, formula)
   perf <- performance(pred, "tpr", "fpr")
   auc <- sprintf("%.4f", round(as.numeric(performance(pred, "auc")@y.values), 4))
   par(pty = "s")
@@ -66,15 +71,69 @@ SM_DX_ROC_plot <- function(data, formula, plotlabel) {
 
 predicting SM dx by vocalization counts
 ```{r predicting SM dx by vocalization counts}
+  png("Child_Voc_Count_ROC.png")
   SM_DX_ROC_plot(data, "SM_dx~Child_Voc_Count", "SM diagnosis by vocalization count")
+  dev.off()
 ```
 
 predicting SM dx by vocalization duration
 ```{r predicting SM dx by vocalization duration}
+  png("Child_Voc_Duration_ROC.png")
   SM_DX_ROC_plot(data, "SM_dx~Child_Voc_Duration", "SM diagnosis by vocalization duration")
+  dev.off()
 ```
 
 predicting SM dx by conversational turns
 ```{r predicting SM dx by conversational turns}
+  png("Turn_Count_ROC.png")
   SM_DX_ROC_plot(data, "SM_dx~Turn_Count", "SM diagnosis by conversational turn count")
+  dev.off()
 ```
+
+```{r ROC by SMQ}
+png('SMQ_ROC.png')
+pred <- SM_DX_pred(data, "SM_dx~smq_as*smq_hf*smq_ss*smq_id")
+perf <- performance(pred, "tpr", "fpr")
+auc <- sprintf("%.4f", round(as.numeric(performance(pred, "auc")@y.values), 4))
+pred_as <- SM_DX_pred(data, "SM_dx~smq_as")
+perf_as <- performance(pred_as, "tpr", "fpr")
+auc_as <- sprintf("%.4f", round(as.numeric(performance(pred_as, "auc")@y.values), 4))
+pred_hf <- SM_DX_pred(data, "SM_dx~smq_hf")
+perf_hf <- performance(pred_hf, "tpr", "fpr")
+auc_hf <- sprintf("%.4f", round(as.numeric(performance(pred_hf, "auc")@y.values), 4))
+pred_ss <- SM_DX_pred(data, "SM_dx~smq_ss")
+perf_ss <- performance(pred_ss, "tpr", "fpr")
+auc_ss <- sprintf("%.4f", round(as.numeric(performance(pred_ss, "auc")@y.values), 4))
+pred_id <- SM_DX_pred(data, "SM_dx~smq_id")
+perf_id <- performance(pred_id, "tpr", "fpr")
+auc_id <- sprintf("%.4f", round(as.numeric(performance(pred_id, "auc")@y.values), 4))
+par(pty="s", xpd=TRUE)
+plot(perf_as, col="#0067a0",
+     main=paste("ROC curve: ", "SM diagnosis by SMQ"),
+     xlim=c(0,1), ylim=c(0,1), asp=1, lty=2)
+plot(perf_hf, col="#a31c3f", add=TRUE, lty=2)
+plot(perf_ss, col="#4db789", add=TRUE, lty=2)
+plot(perf_id, col="#eeae30", add=TRUE, lty=2)
+plot(perf, add=TRUE)
+legend(0.62, 0.75,
+       c("SMQ (combined)",
+         paste("auc: ", auc),
+         "SMQ: at school",
+         paste("auc: ", auc_as),
+         "SMQ: home / family",
+         paste("auc: ", auc_hf),
+         "SMQ: in social situations",
+         "(outside of school)",
+         paste("auc: ", auc_ss),
+         "SMQ: interference / distress",
+         paste("auc: ", auc_id)),
+       text.col="black",
+       col=c("black", "black", "#0067a0", "#0067a0", "#a31c3f", "#a31c3f", "#4db789", "#4db789", "#4db789", "#eeae30", "#eeae30"),
+       lty=c(1,0,2,0,2,0,2,0,0,2,0),
+       bty='o',
+       bg='white',
+       cex=0.8)
+dev.off()
+```
+
+
