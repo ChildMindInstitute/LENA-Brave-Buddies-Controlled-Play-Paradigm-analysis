@@ -1,3 +1,2 @@
 numpy
 pandas
--e git+https://github.com/grrrr/krippendorff-alpha.git#egg=krippendorff_alpha
